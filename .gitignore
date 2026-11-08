@@ -1,0 +1,6 @@
+secrets/
+vault-init-keys.txt
+__pycache__/
+*.pyc
+.venv/
+readme_learn/
