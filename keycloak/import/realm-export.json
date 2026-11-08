@@ -1,0 +1,184 @@
+{
+  "realm": "fleettrack",
+  "displayName": "FleetTrack",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": false,
+  "rememberMe": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "failureFactor": 5,
+  "waitIncrementSeconds": 60,
+  "maxFailureWaitSeconds": 900,
+  "maxDeltaTimeSeconds": 43200,
+  "minimumQuickLoginWaitSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "accessTokenLifespan": 300,
+  "accessCodeLifespan": 60,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "passwordPolicy": "length(12) and notUsername",
+  "defaultSignatureAlgorithm": "RS256",
+  "eventsEnabled": true,
+  "eventsExpiration": 604800,
+  "eventsListeners": ["jboss-logging"],
+  "adminEventsEnabled": true,
+  "adminEventsDetailsEnabled": false,
+  "roles": {
+    "realm": [
+      { "name": "admin",   "description": "Administration globale (Grafana : Admin)" },
+      { "name": "sales",   "description": "Equipe commerciale : dashboards metier et API Sales (Grafana : Editor)" },
+      { "name": "analyst", "description": "Analyse : consultation des statistiques (Grafana : Viewer)" },
+      { "name": "support", "description": "Support : monitoring operationnel (Grafana : Viewer)" }
+    ]
+  },
+  "users": [
+    {
+      "username": "admin",
+      "email": "admin@fleettrack.example",
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "FleetTrack",
+      "enabled": true,
+      "credentials": [
+        { "type": "password", "value": "${FT_PW_ADMIN}", "temporary": false }
+      ],
+      "realmRoles": ["admin"]
+    },
+    {
+      "username": "commercial1",
+      "email": "commercial1@fleettrack.example",
+      "emailVerified": true,
+      "firstName": "Commercial",
+      "lastName": "Un",
+      "enabled": true,
+      "credentials": [
+        { "type": "password", "value": "${FT_PW_COMMERCIAL1}", "temporary": false }
+      ],
+      "realmRoles": ["sales"]
+    },
+    {
+      "username": "analyst1",
+      "email": "analyst1@fleettrack.example",
+      "emailVerified": true,
+      "firstName": "Analyste",
+      "lastName": "Un",
+      "enabled": true,
+      "credentials": [
+        { "type": "password", "value": "${FT_PW_ANALYST1}", "temporary": false }
+      ],
+      "realmRoles": ["analyst"]
+    },
+    {
+      "username": "support1",
+      "email": "support1@fleettrack.example",
+      "emailVerified": true,
+      "firstName": "Support",
+      "lastName": "Un",
+      "enabled": true,
+      "credentials": [
+        { "type": "password", "value": "${FT_PW_SUPPORT1}", "temporary": false }
+      ],
+      "realmRoles": ["support"]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "grafana",
+      "name": "Grafana",
+      "description": "Tour de controle d'observabilite (SSO OIDC)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${FT_GRAFANA_CLIENT_SECRET}",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "rootUrl": "http://localhost:3000",
+      "baseUrl": "http://localhost:3000",
+      "redirectUris": ["http://localhost:3000/login/generic_oauth"],
+      "webOrigins": ["http://localhost:3000"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/login"
+      },
+      "protocolMappers": [
+        {
+          "name": "realm-roles-flat",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.name": "roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "fleettrack-api",
+      "name": "FleetTrack API",
+      "description": "Serveur de ressources : cible (audience) des jetons, aucun flux de connexion",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false
+    },
+    {
+      "clientId": "fleettrack-api-test",
+      "name": "FleetTrack API - client de test (DEV UNIQUEMENT)",
+      "description": "Obtient des jetons par login/mot de passe pour tester l'API avec curl. A supprimer hors developpement.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "protocolMappers": [
+        {
+          "name": "realm-roles-flat",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.name": "roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-fleettrack-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "fleettrack-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ]
+}
